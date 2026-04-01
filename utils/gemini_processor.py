@@ -13,6 +13,7 @@ import re
 
 import google.generativeai as genai
 from dotenv import load_dotenv
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 load_dotenv()
 
@@ -91,13 +92,21 @@ def generate_mom(transcript: str) -> dict:
 
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
+    safety_settings = {
+        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+    }
+
     model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
+        model_name="gemini-2.5-flash", # Consider changing to "gemini-1.5-pro" if flash keeps failing
         system_instruction=SYSTEM_PROMPT,
+        safety_settings=safety_settings, # Applied here!
         generation_config=genai.GenerationConfig(
-            temperature=0.2,        # Low temperature for consistent structure
-            max_output_tokens=4096,
-            response_mime_type="application/json",  # Request JSON mode
+            temperature=0.2, 
+            max_output_tokens=8192, # Bumped to 8k just in case
+            response_mime_type="application/json",
         ),
     )
 
